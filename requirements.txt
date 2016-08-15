@@ -1,0 +1,8 @@
+
+future
+evdev
+PyBluez
+pydbus==0.3.0
+ipython
+#-e git+https://git.gnome.org/browse/pygobject@3.21.0#egg=pygobject
+#-e git://github.com/LEW21/pydbus.git@d6c1a27a2bd17280f63b0093872ffa89d8658f08#egg=pydbus
