@@ -1,0 +1,8 @@
+[Unit]
+Description=keyboard service
+Requires=bluetooth.service
+[Service]
+ExecStart=/root/btk.sh
+Restart=always
+[Install]
+WantedBy=multi-user.target
