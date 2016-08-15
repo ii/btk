@@ -1,0 +1,4 @@
+This has been modified to support using a Grove LCD backlight
+to prompt instead of using the screen:
+
+https://github.com/Seeed-Studio/Grove_LCD_RGB_Backlight.git
