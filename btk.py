@@ -5,6 +5,11 @@ import dbus
 import dbus.mainloop.glib
 import dbus.service
 
+from smbus import SMBus
+from screen import Screen
+from backlight import Backlight
+from display import Display
+
 try:
     from gi.repository import GObject as gobject
 except ImportError:
@@ -51,6 +56,7 @@ class HIDConnection:
     kb = None
 
     def __init__(self, ctrl_fd):
+        self.display = Display(SMBus(2))
         self.ctrl_fd = ctrl_fd
 
         self.ctrl_io_id = gobject.io_add_watch(
@@ -61,6 +67,11 @@ class HIDConnection:
 
     def hello(self):
         print('------hello-------')
+
+        self.display.move(0,0)
+        self.display.color(50, 50, 250)
+        self.display.write("iiGadget Active")
+        #self.display.write("iiGadget onlin")
         os.write(self.ctrl_fd, b'\xa1\x13\x03')
         os.write(self.ctrl_fd, b'\xa1\x13\x02')
 
@@ -72,6 +83,12 @@ class HIDConnection:
         if len(data) == 0:
             print('someone disconnected')
             # I get this when we disconnect
+            self.display.color(50, 50, 250)
+            self.display.move(0,0)
+            self.display.write("iiGadget Active")
+            self.display.move(0,1)
+            self.display.write("Host Disconnect")
+
             return False
 
         handshake = HIDP_TRANS_HANDSHAKE
@@ -114,6 +131,7 @@ class HIDProfile(dbus.service.Object):
     sock = None
 
     def __init__(self, bus, path, sock):
+        self.display = Display(SMBus(2))
         dbus.service.Object.__init__(self, bus, path)
         if (sock):
             self.sock = sock
@@ -138,7 +156,11 @@ class HIDProfile(dbus.service.Object):
 
         def new_intr_conn(ssock, ip_type):
             sock, info = ssock.accept()
-            print("interrput connection:", info)
+            print("interrupt connection:", info)
+            self.display.move(0,1)
+            #import pdb; pdb.set_trace()
+            self.display.write(info[0].replace(':','')+'     ')
+            #FOO
             self.conns[path].register_intr_sock(sock)
 
             return False

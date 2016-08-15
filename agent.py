@@ -1,5 +1,16 @@
 from __future__ import print_function
 #from future.builtins import input
+from smbus import SMBus
+from screen import Screen
+from backlight import Backlight
+from display import Display
+display = Display(SMBus(2))
+display.screen.display()
+display.screen.clear()
+display.move(0,0)
+display.write("iiGadget Init   ")
+display.color(250, 50, 50)
+
 import sys
 import dbus
 import dbus.service
@@ -10,6 +21,7 @@ import glob
 from btk import HIDProfile, PSM_CTRL, PSM_INTR
 import uuid
 import bluetooth as bt
+
 
 try:
     from gi.repository import GObject as gobject
@@ -22,7 +34,28 @@ AGENT_INTERFACE = 'org.bluez.Agent1'
 AGENT_PATH = "/test/agent"
 
 def ask(prompt):
-    return 1111 # input(prompt)
+    print(prompt)
+    display.screen.clear()
+    display.move(0,0)
+    display.color(250, 250, 250)
+    display.write(prompt)
+    display.move(0,1)
+    response = ''
+    kb = ev.InputDevice(glob.glob('/dev/input/by-path/*event-kbd')[0])
+    for event in kb.read_loop():
+        data = ev.categorize(event)
+        if event.type != ev.ecodes.EV_KEY:
+            print("Ignoring nonkey")
+            continue
+        elif data.keystate == 0: # ignore keyup
+            print("Ignoring keyup")
+            continue
+        key = ev.ecodes.KEY[event.code][4:]
+        if key == 'ENTER': # we are done
+            break
+        display.write(key)
+        response = response + key
+    return response
 
 def set_trusted(path):
     props = dbus.Interface(bus.get_object("org.bluez", path),
@@ -64,6 +97,11 @@ class Agent(dbus.service.Object):
                          in_signature="o", out_signature="u")
     def RequestPasskey(self, device):
         print("RequestPasskey (%s)" % (device))
+        display.screen.clear()
+        display.move(0,0)
+        display.color(50, 250, 250)
+        display.write("Enter Passkey:")
+        display.move(0,1)
         passkey = ""
         kb = ev.InputDevice(glob.glob('/dev/input/by-path/*event-kbd')[0])
         print(kb)
@@ -78,6 +116,7 @@ class Agent(dbus.service.Object):
             if key == 'ENTER': # we are done
                 break
             elif key in ['1','2','3','4','5','6','7','8','9','0']:
+                display.write(key)
                 passkey = passkey + key
 
         set_trusted(device)
@@ -88,6 +127,12 @@ class Agent(dbus.service.Object):
     def DisplayPasskey(self, device, passkey, entered):
         print("DisplayPasskey (%s, %06u entered %u)" %
               (device, passkey, entered))
+        display.screen.clear()
+        display.move(0,0)
+        display.color(50, 250, 250)
+        display.write("DisplayPasskey (%s, %06u entered %u)" %
+              (device, passkey, entered))
+
 
     @dbus.service.method(AGENT_INTERFACE,
                          in_signature="os", out_signature="")
@@ -129,7 +174,6 @@ if __name__ == '__main__':
     props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(True))
     props.Set("org.bluez.Adapter1", "Discoverable", dbus.Boolean(True))
 
-
     capability = "KeyboardOnly"
     path = "/test/agent"
     agent = Agent(bus, path)
@@ -138,7 +182,6 @@ if __name__ == '__main__':
     manager.RegisterAgent(path, capability)
     manager.RequestDefaultAgent(path)
 
-    print('start hid')
     sock = bt.BluetoothSocket(bt.L2CAP)
     sock.setblocking(False)
     sock.bind(('', PSM_INTR))
@@ -157,5 +200,14 @@ if __name__ == '__main__':
         bus.get_object("org.bluez", "/org/bluez"),
         "org.bluez.ProfileManager1"
     ).RegisterProfile(obj_path, str(uuid.uuid4()), opts)
-
-    gobject.MainLoop().run()
+    display.move(0,0)
+    display.write("iiGadget Ready  :)")
+    display.color(50, 250, 50)
+    try:
+        gobject.MainLoop().run()
+    except KeyboardInterrupt:
+        display.screen.clear()
+        display.move(0,0)
+        display.write("iiGadget DOWN :(")
+        display.color(255, 0, 0)
+        

@@ -8,8 +8,15 @@ import keymap
 import os
 import struct
 
+from smbus import SMBus
+from screen import Screen
+from backlight import Backlight
+from display import Display
+
+
 class Device:
     def __init__(self, dev_paths, report_id):
+        self.display = Display(SMBus(2))
         self.devs = [ev.InputDevice(dev_path) for dev_path in dev_paths]
         self.state = [
             0xA1, # This is an input report by USB
@@ -57,25 +64,45 @@ class Mouse(Device):
             print('wheel:' + str(event.value))
             self.state[5] = event.value
         elif event.code == ev.ecodes.BTN_LEFT:
+            try:
+                self.display.move(13,1)
+                self.display.color(50, 50, 250)
+                self.display.write(str(event.value))
+            except:
+                pass
             self.state[2][7] = event.value
         elif event.code == ev.ecodes.BTN_MIDDLE:
+            try:
+                self.display.move(14,1)
+                self.display.color(50, 50, 250)
+                self.display.write(str(event.value))
+            except:
+                pass
             self.state[2][5] = event.value
         elif event.code == ev.ecodes.BTN_RIGHT:
+            try:
+                self.display.move(15,1)
+                self.display.color(50, 50, 250)
+                self.display.write(str(event.value))
+            except:
+                pass
             self.state[2][6] = event.value
 
     def ev_cb(self, dev, io_type):
-        event = dev.read_one()
-        if event.type in [
-                ev.ecodes.EV_REL,
-                ev.ecodes.EV_ABS,
-                ev.ecodes.EV_KEY
-        ]:
-            self.event = event
-            self.update_state()
-            self.sock.send(self.to_bstr())
-
-        return True
-
+        try: #sometimes stuff fails... let's ignore for now
+            event = dev.read_one()
+            if event.type in [
+                    ev.ecodes.EV_REL,
+                    ev.ecodes.EV_ABS,
+                    ev.ecodes.EV_KEY
+            ]:
+                self.event = event
+                self.update_state()
+                self.sock.send(self.to_bstr())
+                
+            return True
+        except:
+            return True
     def to_bstr(self):
         # Convert the hex array to a string
         hex_str = b""
@@ -94,7 +121,8 @@ class Mouse(Device):
         for element in self.state[3:]:
             if element > 127:
                 element = 127
-
+            elif element < -128:
+                element = -128
             hex_str += struct.pack("b", element)
 
         return hex_str
@@ -149,13 +177,16 @@ class Keyboard(Device):
                     break
 
     def ev_cb(self, dev, io_type):
-        event = dev.read_one()
-        if event.type == ev.ecodes.EV_KEY and event.value < 2:
-            self.event = event
-            self.update_state()
-            self.sock.send(self.to_bstr())
-
-        return True
+        try: # For now ignoring all falures
+            event = dev.read_one()
+            if event.type == ev.ecodes.EV_KEY and event.value < 2:
+                self.event = event
+                self.update_state()
+                self.sock.send(self.to_bstr())
+                
+            return True
+        except:
+            return True
 
     def to_bstr(self):
         # Convert the hex array to a string
