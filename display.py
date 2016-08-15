@@ -24,7 +24,7 @@ class Display(object):
 if __name__ == "__main__":
     cnt = 0
 
-    d = Display(SMBus(2))
+    d = Display(SMBus(1))
     d.move(0, 0)
     d.write("Yeah.      Nice.")
 

@@ -56,7 +56,7 @@ class HIDConnection:
     kb = None
 
     def __init__(self, ctrl_fd):
-        self.display = Display(SMBus(2))
+        self.display = Display(SMBus(1))
         self.ctrl_fd = ctrl_fd
 
         self.ctrl_io_id = gobject.io_add_watch(
@@ -131,7 +131,7 @@ class HIDProfile(dbus.service.Object):
     sock = None
 
     def __init__(self, bus, path, sock):
-        self.display = Display(SMBus(2))
+        self.display = Display(SMBus(1))
         dbus.service.Object.__init__(self, bus, path)
         if (sock):
             self.sock = sock

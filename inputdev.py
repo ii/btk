@@ -16,7 +16,7 @@ from display import Display
 
 class Device:
     def __init__(self, dev_paths, report_id):
-        self.display = Display(SMBus(2))
+        self.display = Display(SMBus(1))
         self.devs = [ev.InputDevice(dev_path) for dev_path in dev_paths]
         self.state = [
             0xA1, # This is an input report by USB

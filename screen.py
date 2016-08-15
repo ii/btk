@@ -116,8 +116,21 @@ class Screen(object):
         self.cmd(col)
 
 if __name__ == '__main__':
-    bus = SMBus(2)
+    bus = SMBus(1)
     d = Screen(bus, 0x3E)
 
     d.home()
+    time.sleep(1.0)
     d.write('Hallo Welt')
+    d.home()
+    time.sleep(1.0)
+    d.write('Boo Bay')
+    d.home()
+    time.sleep(1.0)
+    d.write('Hallo Welt')
+    d.home()
+    time.sleep(1.0)
+    d.write('Halloaoeu')
+    d.home()
+    time.sleep(1.0)
+    d.write('Halloaoeuaoeuaoeu')

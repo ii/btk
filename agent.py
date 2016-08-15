@@ -4,7 +4,7 @@ from smbus import SMBus
 from screen import Screen
 from backlight import Backlight
 from display import Display
-display = Display(SMBus(2))
+display = Display(SMBus(1))
 display.screen.display()
 display.screen.clear()
 display.move(0,0)

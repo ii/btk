@@ -43,7 +43,7 @@ class Backlight(object):
 if __name__ == '__main__':
     import time
 
-    bus = SMBus(2)
+    bus = SMBus(1)
     light = Backlight(bus, 0x62)
 
     light.set_color(255, 0, 0)
